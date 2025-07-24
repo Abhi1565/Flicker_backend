@@ -1,0 +1,47 @@
+// const express = require('express') // method-1
+import express from "express"; // method-2 
+import dotenv from "dotenv";
+import connectDB from "./config/database.js";
+import userRoute from "./routes/userRoute.js"
+import messageRoute from "./routes/messageRoute.js"
+import { app,server } from "./socket/socket.js";
+import cookieParser from "cookie-parser";
+import cors from "cors";
+dotenv.config({});
+
+const PORT = process.env.PORT || 5000;
+
+// middleware
+app.use(express.urlencoded({extended:true}));
+app.use(express.json());
+app.use(cookieParser());
+
+// CORS configuration - dynamically allow origins for credentials
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    // Allow all origins for now - you can add specific origins here if needed
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// routes
+app.get('/', (req, res) => {
+  res.send('Chat API is running!');
+});
+app.use("/api/v1/user",userRoute);
+app.use("/api/v1/message",messageRoute);
+
+server.listen(PORT, ()=>{
+    connectDB();
+    console.log(`Server listen at port ${PORT}`);
+})
